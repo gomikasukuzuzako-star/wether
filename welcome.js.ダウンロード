@@ -1,0 +1,197 @@
+/* welcome.js は launch.js, wniutil.min.js の２つに依存する */
+var wni_smartpass_callback_uri
+var wni_smartpass_carrier
+var wni_welcome_initialized = false
+var wni_welcome_app_dl_enable
+
+function wni_welcome_is_valid (val) {
+    if (val == 'b3') {
+        return false
+    }
+    else if (val != '' && val !== undefined && val !== 'undefined' && val !== null && val !== 'null' && val !== '(null)') {
+        return true
+    } else {
+        return false
+    }
+}
+
+/* popup */
+function welcome_popup_close (event_label) {
+    if (typeof (ga) == 'object') {
+        send_ga({ hitType: 'event', eventCategory: '25web_popup', eventAction: 'close', eventLabel: event_label })
+    }
+    document.getElementById('welcome_popup').style.display = 'none'
+}
+function welcome_popup_open (url, event_label) {
+    setTimeout(function () { go_url(url) }, 1000)
+    if (typeof (ga) == 'object') {
+        send_ga({ hitType: 'event', eventCategory: '25web_popup', eventAction: 'open', eventLabel: event_label, hitCallback: function () { go_url(url) } })
+    }
+
+    function go_url (url) {
+        location.href = url
+    }
+}
+
+/* 条件に従って popup, banner を拠出 */
+function wni_welcome_init (callback_uri) {
+    if (wni_welcome_initialized == true) return
+    wni_welcome_initialized = true
+
+    if (smart_webview == 'webview') return
+    wni_welcome_app_dl_enable = check_app_dl_enable()
+
+    var premium = argv.premium
+    insert_app_dl_button()
+    var fm = argv.fm
+    var path = location.pathname
+
+    // ポップアップ管理に使うパラメータ用の定数
+    var today = new Date()
+    var today_param = wniutil.simple_strftime('%Y%m', today)
+    if (today.getDate() >= 15) { today_param += '_01' } else { today_param += '_00' }
+
+    if ((!wni_welcome_is_valid(premium)) && (smart_carrier == 'docomo')) {
+        // docomo はスゴ得バナーを出す
+        if (wni_welcome_app_dl_enable) set_sugotoku_dl()
+    } else if ((String(path).match(/^\/onebox\//)) || (String(path).match(/^\/s\/news\//))) {
+        if (wni_welcome_app_dl_enable) set_app_dl_banner()
+        // oneboxはstickyadへ
+    } else if (!wni_welcome_is_valid(premium) && smart_platform != '') {
+        // Onebox, news ページ以外のモバイルWebでは月2回アプリDLのポップアップを出す
+        // var image_url_base = is_kddi_flag(premium) ? 'https://site.weathernews.jp/site/au/images/banner/WNIAppDLKDDI.png' : 'https://site.weathernews.jp/app/img/premium_banner/WNIAppDL.png'
+        // var image_param = {
+        //     image_url: image_url_base + '?' + today_param,
+        //     url: 'https://weathernews.jp/s/download/weathernewstouch.html',
+        //     open_text: '今すぐ使ってみる',
+        //     close_text: '今は使わない',
+        //     width: 320,
+        //     height: 320,
+        //     cookie_param: '__wniappdl_popup__'
+        // }
+        // set_welcome_popup(image_param)
+        if (wni_welcome_app_dl_enable) set_app_dl_banner()
+    }
+}
+
+function is_kddi_flag (premium) {
+    return (smart_carrier == 'kddi' || /b3/.test(premium))
+}
+
+function set_welcome_popup (param) {
+    var cookie_param = param.cookie_param
+    var cookie_value = (wniutil.cookie || {})[cookie_param]
+    var popup_image = param.image_url
+    if (popup_image == cookie_value) { return } // 既に cookie に同じ値がある場合2回目は出さない
+    cookie_write(cookie_param, popup_image)     // 2回目を出さないように cookie にパラメータを記述する
+
+    insert_welcome_popup(param)
+
+    var styles = ['.welcome_popup{ position: fixed;  top:0;  width: 100vw;  height: auto;  min-height: 100vh;  z-index: 10000;  background-color: rgba(0,0,0,.66);  display: -webkit-box;  display: -ms-flexbox;  display: flex;  -webkit-box-pack: center;  -ms-flex-pack: center;  justify-content: center;  -webkit-box-align: center;  -ms-flex-align: center;  align-items: center;}',
+        '.welcome_popup_footer{ background-color: #eb5505;  text-align: center;  padding: 16px 0;}',
+        '.welcome_popup_footer a.welcome_popup_no{ background-color: #ffb38b;  padding:8px 6px;  border-radius: 2px;  color:#eb5505;  font-size:17px;  font-weight:normal;  margin-right:8px;  position: relative;  display: inline-block;  vertical-align: middle;  text-decoration: none;}',
+        '.welcome_popup_footer a.welcome_popup_yes{ background-color: #fff;  padding:8px 16px;  text-indent: 6px;  border-radius: 2px;  color:#eb5505;  font-size:17px;  font-weight:bold;  margin-left:8px;  position: relative;  display: inline-block;  vertical-align: middle;  text-decoration: none;}',
+        'a.welcome_popup_yes::after{ position: absolute;  top: 0;  bottom: 0;  left: 0;  margin: auto 0 auto 3px;  content: "";  vertical-align: middle;  left: 6px;  box-sizing: border-box;  width: 6px;  height: 6px;  border: 6px solid transparent;  border-left: 6px solid #eb5505;}']
+
+    var css = document.styleSheets[0]
+    for (var i = 0; i < styles.length; i++) {
+        try { css.insertRule(styles[i], css.cssRules ? css.cssRules.length : 0); document.getElementById('welcome_popup').style.display = ''; } catch (e) { }
+    }
+}
+
+function set_sugotoku_dl () {
+    set_app_dl_banner()
+    document.getElementById('app_dl').className = 'web banner_sugotoku_default'
+    var url
+    url = 'https://www.dcm-b.jp/cs/cpsite.html?url=https://dcsgtk.wni.co.jp/s/sample/appinfo.html?utm_medium=web&utm_source=cp_hp&utm_campaign=cp_wni10_3'
+    // href = 'https://www.dcm-b.jp/cs/cpsite.html?url=https://dcsgtk.wni.co.jp/s/typhoon/?utm_medium=web&utm_source=dmenu_weather&utm_campaign=cp_wni05';
+    var path = location.pathname
+    if (String(path).match(/^\/s\/news\/typh\//)) {
+        url = "javascript:go_sugotoku('" + url + "');"
+    }
+    if (wni_welcome_is_valid(argv.FromSWtoSGTK)) {
+        ga('send', 'event', 'FromSW', 'check', 'dcsgtk_return', 1)
+    }
+    document.getElementById('app_dl_link').href = url
+    document.getElementById('app_dl_link').onclick = function () {
+        if (typeof (ga) !== 'undefined') {
+            ga('send', 'event', 'app_dl', 'click', 'sgtk', 1)
+        }
+    }
+}
+
+function go_sugotoku (url) {
+    var eventCategory = 'typhoon_news'
+    var eventLabel = 'footer sugotoku'
+    ga('send', 'event', eventCategory, 'click', eventLabel, 1, {
+        hitCallback: function () {
+            location.href = url
+        }
+    })
+}
+
+function send_ga (param) {
+    if (typeof (ga) == 'object') {
+        ga('send', param)
+    }
+}
+
+
+function insert_app_dl_button () {
+    var html = ''
+    html += '<div id="app_dl" class="banner_lgray01">'
+    html += '  <div class="close_icon"><span></span></div>'
+    html += '  <div class="app_install">'
+    html += '    <a id="app_dl_link" href="javascript:go_app_store(\'sw_forecast_footer\');">'
+    html += '      <span class="app_install_text"></span>'
+    html += '    </a>'
+    html += '  </div>'
+    html += '</div>'
+
+    // body の 最後に挿入
+    var tmp = document.createElement('div')
+    tmp.innerHTML = html
+    document.body.appendChild(tmp.children[0])
+}
+
+function insert_welcome_popup (param) {
+    var image = (typeof (param) == 'object') ? param : {}
+    var html = ''
+    html += '<div id="welcome_popup" class="welcome_popup" style="display:none">'
+    html += '  <div>'
+    html += '    <img style="margin-right:0px;width:' + image.width + 'px;height:' + image.height + 'px" src="' + image.image_url + '" width="' + image.width + '" height="' + image.height + '"/>'
+    html += '    <div class="welcome_popup_footer"><a class="welcome_popup_no" href="javascript:void(0);" onclick="welcome_popup_close(\'' + image.image_url + '\');">' + image.close_text + '</a><a class="welcome_popup_yes" href="javascript:void(0);" onclick="welcome_popup_open(\'' + image.url + '\',\'' + image.image_url + '\');">' + image.open_text + '</a></div>'
+    html += '  </div>'
+    html += '</div>'
+
+    // body の 最後に挿入
+    var tmp = document.createElement('div')
+    tmp.innerHTML = html
+    document.body.appendChild(tmp.children[0])
+}
+
+document.addEventListener('DOMContentLoaded', wni_welcome_init)
+
+function check_app_dl_enable () {
+    // メタから判断(キャリアWEB)
+    var code_meta = document.querySelectorAll('meta[name="codename"]')
+    for (var i = 0, l = code_meta.length; i < l; i++) {
+        var code_value = code_meta[i].getAttribute('content')
+        if (code_value == '2.5WEB') {
+            console.log('2.5WEB')
+            return false
+        }
+    }
+    // 設定から判断（読み込み順の関係で基本的に失敗する）
+    if (typeof (ads) !== 'undefined' && ads.options.gpt_sticky_conf) {
+        console.log('has sticky')
+        return false
+    }
+    // グローバル変数から判定する（onebox用）
+    if (typeof (use_sticky_ad) !== 'undefined' && use_sticky_ad == true) {
+        console.log('use sticky ad flag')
+        return false
+    }
+
+    return true
+}

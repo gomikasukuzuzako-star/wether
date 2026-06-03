@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 28.3.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="_レイヤー_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px"
+	 y="0px" width="30px" height="30px" viewBox="0 0 30 30" style="enable-background:new 0 0 30 30;" xml:space="preserve">
+<style type="text/css">
+	.st0{display:none;}
+	.st1{display:inline;}
+	.st2{fill:#FFAE00;}
+	.st3{fill:#5792CD;}
+</style>
+<g id="_レイヤー_2" class="st0">
+	<g class="st1">
+		<circle class="st2" cx="541.8" cy="751.3" r="7.2"/>
+		<g>
+			<polygon class="st2" points="541.8,739.9 540.2,742.6 543.4,742.6 			"/>
+			<polygon class="st2" points="541.8,762.8 543.4,760 540.2,760 			"/>
+		</g>
+		<g>
+			<polygon class="st2" points="536.1,741.4 536.1,744.6 538.9,743 			"/>
+			<polygon class="st2" points="547.6,761.2 547.6,758 544.8,759.6 			"/>
+		</g>
+		<g>
+			<polygon class="st2" points="531.9,745.6 533.5,748.4 535.1,745.6 			"/>
+			<polygon class="st2" points="551.7,757 550.1,754.3 548.5,757 			"/>
+		</g>
+		<g>
+			<polygon class="st2" points="530.4,751.3 533.1,752.9 533.1,749.7 			"/>
+			<polygon class="st2" points="553.3,751.3 550.5,749.7 550.5,752.9 			"/>
+		</g>
+		<g>
+			<polygon class="st2" points="531.9,757 535.1,757 533.5,754.3 			"/>
+			<polygon class="st2" points="551.7,745.6 548.5,745.6 550.1,748.4 			"/>
+		</g>
+		<g>
+			<polygon class="st2" points="536.1,761.2 538.9,759.6 536.1,758 			"/>
+			<polygon class="st2" points="547.6,741.4 544.8,743 547.6,744.6 			"/>
+		</g>
+	</g>
+</g>
+<path class="st3" d="M29.3,4.7l-7.4,4.1v-3c0-0.6-0.5-1-1-1H1.7c-0.6,0-1,0.5-1,1v18.3c0,0.6,0.5,1,1,1h19.2c0.6,0,1-0.5,1-1v-3
+	l7.4,4.1V4.7z"/>
+</svg>

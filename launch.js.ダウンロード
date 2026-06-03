@@ -1,0 +1,88 @@
+function openURLbyIframe(url) {
+    var iframe = window.document.createElement('iframe');
+    iframe.src = url;
+    iframe.setAttribute('height', 0);
+    iframe.setAttribute('width', 0);
+    iframe.style.display = 'none';
+    window.document.body.appendChild(iframe);
+    return iframe;
+}
+
+function appLaunch(url_scheme, fallback_url) {
+    openURLbyIframe(url_scheme);
+    var _timerId = setTimeout(function() {
+      location.href = fallback_url;
+    }, 500);
+}
+
+function go_app_store(fm) {
+    //cookie_write("app_dl_banner", "1", 1); //1day
+
+    //var url = "https://app.weathernews.jp/s/download/weathernewstouch.html";
+    var url = "https://weathernews.jp/s/download/weathernewstouch.html";
+    if(is_valid(fm)) {
+    	url = url + "?fm=" + fm;
+    }
+    
+//    if(smart_platform == 'android'){
+//    	var url_scheme = 'weathernews://weathernews.jp/map';
+//    	appLaunch(url_scheme, url);
+//    } else {
+    	location.href = url;
+//    }
+}
+
+function set_app_dl_banner(type){
+//    if(!is_valid(argv['app_dl_banner']) && !is_valid(argv['premium'])){
+//        $('#app_dl').css('display', 'block');
+//    }
+
+    if(smart_webview == "webview") return;
+    if(smart_platform == "") return;
+    if(smart_platform == "tizen") return;
+    if(smart_hardware == "SH-05E") return;
+
+    if(wniutil.is_valid(argv['app_dl_banner'])) return;
+    if(wniutil.is_valid(argv['premium'])) return;
+    if(RegExp(/spass-app/).test(navigator.userAgent)) return; //for auサービスTOPアプリ
+
+    $('#app_dl').css('display', 'block');
+
+    var scrollStopEvent = new $.Event("scrollstop");
+    var delay = 100;
+    var timer;
+    function scrollStopEventTrigger(){
+        if (timer) {clearTimeout(timer);}
+        timer = setTimeout(function(){$(window).trigger(scrollStopEvent)}, delay);
+    }
+    $(window).on("scroll", scrollStopEventTrigger);
+    $("body").on("touchmove", scrollStopEventTrigger);
+
+    //move
+    $(window).on("scroll touchmove", function(){
+        $("#app_dl").css('opacity', '0.5');
+    });
+    $(window).on("scrollstop",function(){
+        $("#app_dl").css('opacity', '1');
+    });
+
+    //close
+    $('#app_dl .close_icon').click(function(){
+        $('#app_dl').css('display', 'none');
+	if (type == 'smartpass') {
+          cookie_write("app_dl_banner", "1", 1); // 1day
+        } else if(document.referrer) {
+          cookie_write("app_dl_banner", "3", 3); // 3day(72h)
+        } else {
+          cookie_write("app_dl_banner", "7", 7); // 7day(bookmark etc)
+        }
+    });
+}
+
+function is_valid(val){                                                                                                                                 
+    if(val != '' && val !== undefined && val !== 'undefined' && val !== null && val !== 'null' && val !== '(null)') {
+        return true;
+    } else {
+        return false;
+    }
+}
